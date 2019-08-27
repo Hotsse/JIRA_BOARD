@@ -60,5 +60,12 @@ public class IssueVO {
 	public void setDueDate(Date dueDate) {
 		this.dueDate = dueDate;
 	}	
+	
+	@Override
+	public String toString() {
+		return "IssueVO [key=" + key + ", summary=" + summary + ", reporterNm=" + reporterNm + ", assigneeNm="
+				+ assigneeNm + ", reporterId=" + reporterId + ", assigneId=" + assigneId + ", createdDate="
+				+ createdDate + ", dueDate=" + dueDate + "]";
+	}
 
 }

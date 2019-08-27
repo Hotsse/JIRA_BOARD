@@ -46,4 +46,10 @@ public class AttachmentVO {
 		this.thumbNail = thumbNail;
 	}
 	
+	@Override
+	public String toString() {
+		return "AttachmentVO [parentKey=" + parentKey + ", uri=" + uri + ", name=" + name + ", size=" + size
+				+ ", mimeType=" + mimeType + ", thumbNail=" + thumbNail + "]";
+	}	
+	
 }

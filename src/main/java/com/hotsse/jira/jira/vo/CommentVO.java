@@ -47,5 +47,11 @@ public class CommentVO {
 	public void setCreatedDate(DateTime createdDate) {
 		this.createdDate = createdDate;
 	}
+	
+	@Override
+	public String toString() {
+		return "CommentVO [id=" + id + ", parentKey=" + parentKey + ", body=" + body + ", authorId=" + authorId
+				+ ", authorNm=" + authorNm + ", createdDate=" + createdDate + "]";
+	}
 
 }
