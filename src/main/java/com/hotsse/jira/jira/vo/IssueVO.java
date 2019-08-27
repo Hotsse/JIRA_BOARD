@@ -6,12 +6,13 @@ public class IssueVO {
 	
 	private String key;
 	private String summary;
-	private String reporterNm;
-	private String assigneeNm;
 	private String reporterId;
+	private String reporterNm;
 	private String assigneId;
+	private String assigneeNm;	
 	private Date createdDate;
 	private Date dueDate;
+	
 	public String getKey() {
 		return key;
 	}

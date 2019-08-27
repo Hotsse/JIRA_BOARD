@@ -3,14 +3,9 @@ package com.hotsse.jira.jira;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,13 +17,14 @@ import com.atlassian.jira.rest.client.api.domain.Attachment;
 import com.atlassian.jira.rest.client.api.domain.Comment;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
+import com.atlassian.jira.rest.client.api.domain.Subtask;
+import com.atlassian.jira.rest.client.api.domain.Worklog;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
 import com.hotsse.jira.jira.vo.AttachmentVO;
 import com.hotsse.jira.jira.vo.CommentVO;
 import com.hotsse.jira.jira.vo.IssueVO;
-import com.hotsse.jira.jira.vo.SubtaskVO;
 import com.hotsse.jira.jira.vo.WorklogVO;
 import com.hotsse.jira.ldap.LdapService;
 import com.hotsse.jira.ldap.vo.LdapVO;
@@ -44,6 +40,12 @@ public class JiraService {
 	@Autowired
 	private CommonService commonService;
 	
+	/**
+	 * <pre>
+	 * 이슈 리스트 조회
+	 * </pre>
+	 * @methodName	: getJiraIssueList
+	 */
 	public List<IssueVO> getJiraIssueList(LdapVO ldap) throws Exception{
 		
 		List<IssueVO> issueList = new ArrayList<IssueVO>();
@@ -72,9 +74,7 @@ public class JiraService {
 				iv.setAssigneId(issue.getAssignee().getName());																// assigneeId
 				iv.setCreatedDate(issue.getCreationDate().toDate());															// createdDate
 				iv.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
-				
-				
-				
+								
 				issueList.add(iv);
 			}			
 		}
@@ -88,6 +88,12 @@ public class JiraService {
 		return issueList;
 	}
 	
+	/**
+	 * <pre>
+	 * 이슈 조회
+	 * </pre>
+	 * @methodName	: getJiraIssue
+	 */
 	public IssueVO getJiraIssue(LdapVO ldap, String key) throws Exception{
 		
 		IssueVO result = new IssueVO();
@@ -98,13 +104,13 @@ public class JiraService {
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
-			result.setKey(issue.getKey());																								// key
+			result.setKey(issue.getKey());																							// key
 			result.setSummary(issue.getSummary());																				// summary
 			result.setReporterNm(issue.getReporter().getDisplayName());													// reporterNm
-			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");		// assigneeNm
+			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");	// assigneeNm
 			result.setReporterId(issue.getReporter().getName());																// reporterId
 			result.setAssigneId(issue.getAssignee().getName());																// assigneeId
-			result.setCreatedDate(issue.getCreationDate().toDate());															// createdDate
+			result.setCreatedDate(issue.getCreationDate().toDate());														// createdDate
 			result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
 		}
 		catch(Exception e) {
@@ -117,7 +123,12 @@ public class JiraService {
 		return result;
 	}
 	
-	
+	/**
+	 * <pre>
+	 * 댓글 리스트 조회
+	 * </pre>
+	 * @methodName	: getJiraCommentList
+	 */
 	public List<CommentVO> getJiraCommentList(LdapVO ldap, String key){
 		
 		List<CommentVO> commentList = new ArrayList<CommentVO>();
@@ -151,10 +162,19 @@ public class JiraService {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
 		
 		return commentList;	
 	}
 	
+	/**
+	 * <pre>
+	 * 첨부파일 리스트 조회
+	 * </pre>
+	 * @methodName	: getJiraAttachmentList
+	 */
 	public List<AttachmentVO> getJiraAttachmentList(LdapVO ldap, String key){
 		
 		List<AttachmentVO> attachmentList = new ArrayList<AttachmentVO>();
@@ -188,10 +208,19 @@ public class JiraService {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
 		
 		return attachmentList;		
 	}
 	
+	/**
+	 * <pre>
+	 * 작업시간 리스트 조회
+	 * </pre>
+	 * @methodName	: getJiraWorklogList
+	 */
 	public List<WorklogVO> getJiraWorklogList(LdapVO ldap, String key){
 		
 		List<WorklogVO> worklogList = new ArrayList<WorklogVO>();
@@ -202,17 +231,43 @@ public class JiraService {
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
+			Iterable<Worklog> worklogs = issue.getWorklogs();
+			if(worklogs != null) {
+				
+				for(Worklog w : worklogs) {
+					
+					WorklogVO worklog = new WorklogVO();
+					
+					worklog.setParentKey(key);
+					worklog.setAuthorId(w.getAuthor().getName());
+					worklog.setAuthorNm(w.getAuthor().getDisplayName());
+					worklog.setStartDt(w.getCreationDate());
+					worklog.setSpentTime(w.getMinutesSpent());
+					
+					worklogList.add(worklog);					
+				}
+			}
+			
 		}
 		catch(Exception e) {
 			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
 		}
 		
 		return worklogList;		
 	}
 	
-	public List<SubtaskVO> getJiraSubtaskList(LdapVO ldap, String key){
+	/**
+	 * <pre>
+	 * 부작업 리스트 조회
+	 * </pre>
+	 * @methodName	: getJiraSubtaskList
+	 */
+	public List<IssueVO> getJiraSubtaskList(LdapVO ldap, String key){
 		
-		List<SubtaskVO> subtaskList = new ArrayList<SubtaskVO>();
+		List<IssueVO> subtaskList = new ArrayList<IssueVO>();
 		
 		JiraRestClient restClient = null;		
 		try {
@@ -220,9 +275,22 @@ public class JiraService {
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
+			Iterable<Subtask> subtasks = issue.getSubtasks();
+			if(subtasks != null) {
+				
+				for(Subtask s : subtasks) {
+					
+					IssueVO iv = getJiraIssue(ldap, s.getIssueKey());					
+					subtaskList.add(iv);
+				}
+				
+			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
 		}
 		
 		return subtaskList;	
@@ -257,7 +325,5 @@ public class JiraService {
 	private IssueRestClient getIssueClient(JiraRestClient restClient) {
 		return restClient.getIssueClient();
 	}
-	
-	
 	
 }

@@ -1,13 +1,15 @@
 package com.hotsse.jira.jira.vo;
 
+import org.joda.time.DateTime;
+
 public class WorklogVO {
 	
-	private long id;
+	private long id;	
 	private String parentKey;
 	private String authorId;
 	private String authorNm;
-	private String startDt;
-	private String spentTime;
+	private DateTime startDt;
+	private int spentTime;
 	
 	public long getId() {
 		return id;
@@ -33,17 +35,23 @@ public class WorklogVO {
 	public void setAuthorNm(String authorNm) {
 		this.authorNm = authorNm;
 	}
-	public String getStartDt() {
+	public DateTime getStartDt() {
 		return startDt;
 	}
-	public void setStartDt(String startDt) {
+	public void setStartDt(DateTime startDt) {
 		this.startDt = startDt;
 	}
-	public String getSpentTime() {
+	public int getSpentTime() {
 		return spentTime;
 	}
-	public void setSpentTime(String spentTime) {
+	public void setSpentTime(int spentTime) {
 		this.spentTime = spentTime;
+	}
+	
+	@Override
+	public String toString() {
+		return "WorklogVO [id=" + id + ", parentKey=" + parentKey + ", authorId=" + authorId + ", authorNm=" + authorNm
+				+ ", startDt=" + startDt + ", spentTime=" + spentTime + "]";
 	}
 	
 }
