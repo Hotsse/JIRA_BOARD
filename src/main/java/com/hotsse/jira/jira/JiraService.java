@@ -22,12 +22,12 @@ import com.atlassian.jira.rest.client.api.domain.Worklog;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
+import com.hotsse.jira.common.staff.StaffService;
+import com.hotsse.jira.common.staff.vo.StaffVO;
 import com.hotsse.jira.jira.vo.AttachmentVO;
 import com.hotsse.jira.jira.vo.CommentVO;
 import com.hotsse.jira.jira.vo.IssueVO;
 import com.hotsse.jira.jira.vo.WorklogVO;
-import com.hotsse.jira.ldap.LdapService;
-import com.hotsse.jira.ldap.vo.LdapVO;
 
 @Service
 public class JiraService {
@@ -35,7 +35,7 @@ public class JiraService {
 	final private static String JIRAURI = "http://works.eduwill.net"; // JIRA URI
 	
 	@Autowired
-	private LdapService ldapService;
+	private StaffService staffService;
 	
 	@Autowired
 	private CommonService commonService;
@@ -46,13 +46,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraIssueList
 	 */
-	public List<IssueVO> getJiraIssueList(LdapVO ldap) throws Exception{
+	public List<IssueVO> getJiraIssueList(StaffVO staff) throws Exception{
 		
 		List<IssueVO> issueList = new ArrayList<IssueVO>();
 		
 		JiraRestClient restClient = null;
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			SearchRestClient src = restClient.getSearchClient();
 			
 			Set<String> fields = new HashSet<>();
@@ -94,13 +94,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraIssue
 	 */
-	public IssueVO getJiraIssue(LdapVO ldap, String key) throws Exception{
+	public IssueVO getJiraIssue(StaffVO staff, String key) throws Exception{
 		
 		IssueVO result = new IssueVO();
 		
 		JiraRestClient restClient = null;		
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
@@ -129,13 +129,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraCommentList
 	 */
-	public List<CommentVO> getJiraCommentList(LdapVO ldap, String key){
+	public List<CommentVO> getJiraCommentList(StaffVO staff, String key){
 		
 		List<CommentVO> commentList = new ArrayList<CommentVO>();
 		
 		JiraRestClient restClient = null;		
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
@@ -175,13 +175,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraAttachmentList
 	 */
-	public List<AttachmentVO> getJiraAttachmentList(LdapVO ldap, String key){
+	public List<AttachmentVO> getJiraAttachmentList(StaffVO staff, String key){
 		
 		List<AttachmentVO> attachmentList = new ArrayList<AttachmentVO>();
 		
 		JiraRestClient restClient = null;		
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
@@ -221,13 +221,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraWorklogList
 	 */
-	public List<WorklogVO> getJiraWorklogList(LdapVO ldap, String key){
+	public List<WorklogVO> getJiraWorklogList(StaffVO staff, String key){
 		
 		List<WorklogVO> worklogList = new ArrayList<WorklogVO>();
 		
 		JiraRestClient restClient = null;		
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
@@ -265,13 +265,13 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraSubtaskList
 	 */
-	public List<IssueVO> getJiraSubtaskList(LdapVO ldap, String key){
+	public List<IssueVO> getJiraSubtaskList(StaffVO staff, String key){
 		
 		List<IssueVO> subtaskList = new ArrayList<IssueVO>();
 		
 		JiraRestClient restClient = null;		
 		try {
-			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
@@ -280,7 +280,7 @@ public class JiraService {
 				
 				for(Subtask s : subtasks) {
 					
-					IssueVO iv = getJiraIssue(ldap, s.getIssueKey());					
+					IssueVO iv = getJiraIssue(staff, s.getIssueKey());					
 					subtaskList.add(iv);
 				}
 				

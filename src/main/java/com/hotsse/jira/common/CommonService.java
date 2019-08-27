@@ -21,7 +21,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Service;
 
-import com.hotsse.jira.ldap.vo.LdapVO;
+import com.hotsse.jira.common.staff.vo.StaffVO;
+
 
 @Service
 public class CommonService {
@@ -32,13 +33,13 @@ public class CommonService {
 	 * </pre>
 	 * @methodName	: executeHttpDelete
 	 */
-	public Map<String, String> executeHttpGet(String uri, LdapVO ldap) throws Exception{
+	public Map<String, String> executeHttpGet(String uri, StaffVO staff) throws Exception{
 
 		// 메소드 변수 선언
 		HttpGet httpRequest = new HttpGet();
 
 		// HTTP Request 공통 모듈 실행
-		Map<String, String> map = executeHttpClient(httpRequest, uri, ldap);
+		Map<String, String> map = executeHttpClient(httpRequest, uri, staff);
 
 		return map;
 	}
@@ -49,13 +50,13 @@ public class CommonService {
 	 * </pre>
 	 * @methodName	: executeHttpDelete
 	 */
-	public Map<String, String> executeHttpDelete(String uri, LdapVO ldap) throws Exception{
+	public Map<String, String> executeHttpDelete(String uri, StaffVO staff) throws Exception{
 
 		// 메소드 변수 선언
 		HttpDelete httpRequest = new HttpDelete();
 
 		// HTTP Request 공통 모듈 실행
-		Map<String, String> map = executeHttpClient(httpRequest, uri, ldap);
+		Map<String, String> map = executeHttpClient(httpRequest, uri, staff);
 
 		return map;
 	}
@@ -66,7 +67,7 @@ public class CommonService {
 	 * </pre>
 	 * @methodName	: executeHttpPost
 	 */
-	public Map<String, String> executeHttpPost(String uri, LdapVO ldap, String body) throws Exception{
+	public Map<String, String> executeHttpPost(String uri, StaffVO staff, String body) throws Exception{
 
 		// 메소드 변수 선언
 		HttpPost httpRequest = new HttpPost();
@@ -78,7 +79,7 @@ public class CommonService {
 		}
 
 		// HTTP Request 공통 모듈 실행
-		Map<String, String> map = executeHttpClient(httpRequest, uri, ldap);
+		Map<String, String> map = executeHttpClient(httpRequest, uri, staff);
 
 		return map;
 	}
@@ -89,7 +90,7 @@ public class CommonService {
 	 * </pre>
 	 * @methodName	: executeHttpPut
 	 */
-	public Map<String, String> executeHttpPut(String uri, LdapVO ldap, String body) throws Exception{
+	public Map<String, String> executeHttpPut(String uri, StaffVO staff, String body) throws Exception{
 
 		// 메소드 변수 선언
 		HttpPut httpRequest = new HttpPut();
@@ -101,7 +102,7 @@ public class CommonService {
 		}
 
 		// HTTP Request 공통 모듈 실행
-		Map<String, String> map = executeHttpClient(httpRequest, uri, ldap);
+		Map<String, String> map = executeHttpClient(httpRequest, uri, staff);
 
 		return map;
 	}
@@ -112,7 +113,7 @@ public class CommonService {
 	 * </pre>
 	 * @methodName	: executeHttpClient
 	 */
-	private Map<String, String> executeHttpClient(HttpRequestBase httpRequest, String uri, LdapVO ldap){
+	private Map<String, String> executeHttpClient(HttpRequestBase httpRequest, String uri, StaffVO staff){
 		
 		Map<String, String> map = null;
 
@@ -123,8 +124,8 @@ public class CommonService {
 		httpRequest.setURI(URI.create(uri));
 
 		// Base64 인코딩
-		String strLdap = ldap.getId() + ":" + ldap.getPw();
-		String basicAuth = new String(Base64.getEncoder().encode(strLdap.getBytes()));
+		String strStaff = staff.getId() + ":" + staff.getPw();
+		String basicAuth = new String(Base64.getEncoder().encode(strStaff.getBytes()));
 		
 		// 헤더 설정
 		httpRequest.setHeader("Authorization", "Basic " + basicAuth);
