@@ -3,7 +3,8 @@ package com.hotsse.jira.ldap.vo;
 public class LdapVO {
 	
 	private String id;
-	private String pw;
+	private String name;
+	private String teamNm;
 	
 	public String getId() {
 		return id;
@@ -11,20 +12,22 @@ public class LdapVO {
 	public void setId(String id) {
 		this.id = id;
 	}
-	public String getPw() {
-		return pw;
+	public String getName() {
+		return name;
 	}
-	public void setPw(String pw) {
-		this.pw = pw;
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getTeamNm() {
+		return teamNm;
+	}
+	public void setTeamNm(String teamNm) {
+		this.teamNm = teamNm;
 	}
 	
-	public LdapVO(String id, String pw) {
-		this.id = id;
-		this.pw = pw;
-	}
-	
-	public LdapVO() {
-		
+	@Override
+	public String toString() {
+		return "LdapVO [id=" + id + ", name=" + name + ", teamNm=" + teamNm + "]";
 	}
 	
 }
