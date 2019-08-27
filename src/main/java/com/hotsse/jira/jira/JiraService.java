@@ -179,6 +179,7 @@ public class JiraService {
 					attachment.setMimeType(a.getMimeType());
 					if(a.hasThumbnail()) attachment.setThumbNail(a.getThumbnailUri().toString());
 					
+					attachmentList.add(attachment);
 				}
 				
 			}
