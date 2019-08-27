@@ -37,11 +37,9 @@ public class JiraService {
 	@Autowired
 	private CommonService commonService;
 	
-	public List<IssueVO> getJiraIssueList(HttpServletRequest req, HttpServletResponse res) throws Exception{
+	public List<IssueVO> getJiraIssueList(LdapVO ldap) throws Exception{
 		
 		List<IssueVO> issueList = new ArrayList<IssueVO>();
-		
-		LdapVO ldap = ldapService.getLdap(req, res);
 		
 		JiraRestClient restClient = null;
 		try {
@@ -75,6 +73,33 @@ public class JiraService {
 		}
 		
 		return issueList;
+	}
+	
+	public IssueVO getJiraIssue(LdapVO ldap, String key) throws Exception{
+		
+		IssueVO result = new IssueVO();
+		
+		JiraRestClient restClient = null;
+		
+		try {
+			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+			result.setKey(issue.getKey());
+			result.setSummary(issue.getSummary());
+			result.setReporter(issue.getReporter().getDisplayName());
+			result.setAssignee((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
+		
+		return result;
 	}
 	
 	/**
