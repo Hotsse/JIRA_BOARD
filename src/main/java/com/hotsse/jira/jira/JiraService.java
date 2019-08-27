@@ -2,6 +2,7 @@ package com.hotsse.jira.jira;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,12 +18,18 @@ import org.springframework.stereotype.Service;
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.SearchRestClient;
+import com.atlassian.jira.rest.client.api.domain.Attachment;
+import com.atlassian.jira.rest.client.api.domain.Comment;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
+import com.hotsse.jira.jira.vo.AttachmentVO;
+import com.hotsse.jira.jira.vo.CommentVO;
 import com.hotsse.jira.jira.vo.IssueVO;
+import com.hotsse.jira.jira.vo.SubtaskVO;
+import com.hotsse.jira.jira.vo.WorklogVO;
 import com.hotsse.jira.ldap.LdapService;
 import com.hotsse.jira.ldap.vo.LdapVO;
 
@@ -57,10 +64,16 @@ public class JiraService {
 				
 				IssueVO iv = new IssueVO();
 				
-				iv.setKey(issue.getKey());																							// key
-				iv.setSummary(issue.getSummary());																			// summary
-				iv.setReporter(issue.getReporter().getDisplayName());														// reporter
-				iv.setAssignee((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");		// assignee
+				iv.setKey(issue.getKey());																								// key
+				iv.setSummary(issue.getSummary());																				// summary
+				iv.setReporterNm(issue.getReporter().getDisplayName());													// reporterNm
+				iv.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");		// assigneeNm
+				iv.setReporterId(issue.getReporter().getName());																// reporterId
+				iv.setAssigneId(issue.getAssignee().getName());																// assigneeId
+				iv.setCreatedDate(issue.getCreationDate().toDate());															// createdDate
+				iv.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
+				
+				
 				
 				issueList.add(iv);
 			}			
@@ -79,18 +92,20 @@ public class JiraService {
 		
 		IssueVO result = new IssueVO();
 		
-		JiraRestClient restClient = null;
-		
+		JiraRestClient restClient = null;		
 		try {
 			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
-			IssueRestClient issueClient = getIssueClient(restClient);
-			
+			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
-			result.setKey(issue.getKey());
-			result.setSummary(issue.getSummary());
-			result.setReporter(issue.getReporter().getDisplayName());
-			result.setAssignee((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");
+			result.setKey(issue.getKey());																								// key
+			result.setSummary(issue.getSummary());																				// summary
+			result.setReporterNm(issue.getReporter().getDisplayName());													// reporterNm
+			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");		// assigneeNm
+			result.setReporterId(issue.getReporter().getName());																// reporterId
+			result.setAssigneId(issue.getAssignee().getName());																// assigneeId
+			result.setCreatedDate(issue.getCreationDate().toDate());															// createdDate
+			result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -101,6 +116,117 @@ public class JiraService {
 		
 		return result;
 	}
+	
+	
+	public List<CommentVO> getJiraCommentList(LdapVO ldap, String key){
+		
+		List<CommentVO> commentList = new ArrayList<CommentVO>();
+		
+		JiraRestClient restClient = null;		
+		try {
+			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+			Iterable<Comment> comments = issue.getComments();
+			if(comments != null) {
+				
+				for(Comment c : comments) {
+					
+					CommentVO comment = new CommentVO();
+					
+					comment.setId(c.getId());
+					comment.setParentKey(key);
+					comment.setBody(c.getBody());
+					comment.setAuthorId(c.getAuthor().getName());
+					comment.setAuthorNm(c.getAuthor().getDisplayName());
+					comment.setCreatedDate(c.getCreationDate());
+					
+					commentList.add(comment);					
+				}
+				Collections.reverse(commentList); // 댓글 역순 정렬
+			}
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return commentList;	
+	}
+	
+	public List<AttachmentVO> getJiraAttachmentList(LdapVO ldap, String key){
+		
+		List<AttachmentVO> attachmentList = new ArrayList<AttachmentVO>();
+		
+		JiraRestClient restClient = null;		
+		try {
+			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+			Iterable<Attachment> attachments = issue.getAttachments();
+			if(attachments != null) {
+				
+				for(Attachment a : attachments) {
+					
+					AttachmentVO attachment = new AttachmentVO();
+					
+					attachment.setParentKey(key);
+					attachment.setUri(a.getContentUri().toString());
+					attachment.setName(a.getFilename());
+					attachment.setSize(a.getSize());
+					attachment.setMimeType(a.getMimeType());
+					if(a.hasThumbnail()) attachment.setThumbNail(a.getThumbnailUri().toString());
+					
+				}
+				
+			}
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return attachmentList;		
+	}
+	
+	public List<WorklogVO> getJiraWorklogList(LdapVO ldap, String key){
+		
+		List<WorklogVO> worklogList = new ArrayList<WorklogVO>();
+		
+		JiraRestClient restClient = null;		
+		try {
+			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return worklogList;		
+	}
+	
+	public List<SubtaskVO> getJiraSubtaskList(LdapVO ldap, String key){
+		
+		List<SubtaskVO> subtaskList = new ArrayList<SubtaskVO>();
+		
+		JiraRestClient restClient = null;		
+		try {
+			restClient = getJiraRestClient(ldap.getId(), ldap.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return subtaskList;	
+	}
+	
 	
 	/**
 	 * <pre>
