@@ -1,12 +1,17 @@
 package com.hotsse.jira.jira.vo;
 
+import java.util.Date;
+
 public class IssueVO {
 	
 	private String key;
 	private String summary;
-	private String reporter;
-	private String assignee;
-	
+	private String reporterNm;
+	private String assigneeNm;
+	private String reporterId;
+	private String assigneId;
+	private Date createdDate;
+	private Date dueDate;
 	public String getKey() {
 		return key;
 	}
@@ -19,17 +24,41 @@ public class IssueVO {
 	public void setSummary(String summary) {
 		this.summary = summary;
 	}
-	public String getReporter() {
-		return reporter;
+	public String getReporterNm() {
+		return reporterNm;
 	}
-	public void setReporter(String reporter) {
-		this.reporter = reporter;
+	public void setReporterNm(String reporterNm) {
+		this.reporterNm = reporterNm;
 	}
-	public String getAssignee() {
-		return assignee;
+	public String getAssigneeNm() {
+		return assigneeNm;
 	}
-	public void setAssignee(String assignee) {
-		this.assignee = assignee;
+	public void setAssigneeNm(String assigneeNm) {
+		this.assigneeNm = assigneeNm;
+	}
+	public String getReporterId() {
+		return reporterId;
+	}
+	public void setReporterId(String reporterId) {
+		this.reporterId = reporterId;
+	}
+	public String getAssigneId() {
+		return assigneId;
+	}
+	public void setAssigneId(String assigneId) {
+		this.assigneId = assigneId;
+	}
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+	public Date getDueDate() {
+		return dueDate;
+	}
+	public void setDueDate(Date dueDate) {
+		this.dueDate = dueDate;
 	}	
 
 }
