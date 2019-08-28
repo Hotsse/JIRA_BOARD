@@ -12,6 +12,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.hotsse.jira.common.staff.vo.StaffVO;
@@ -19,6 +20,15 @@ import com.hotsse.jira.ldap.vo.LdapVO;
 
 @Service
 public class LdapService {
+	
+	@Value("${edw.ldap.context}")
+	private String LDAP_CONTEXT;
+	
+	@Value("${edw.ldap.url}")
+	private String LDAP_URL;
+	
+	@Value("${edw.ldap.auth}")
+	private String LDAP_AUTH;
 	
 	public List<LdapVO> searchLdapInfo(StaffVO staff, String userNm) throws Exception {
 		
@@ -92,11 +102,11 @@ public class LdapService {
 	private Hashtable<String, String> getLdapEnvironment(StaffVO staff) throws Exception {
 		
 	    Hashtable<String, String> env = new Hashtable<String, String>();
-	    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory"); // 프로토콜 컨텍스트
-	    env.put(Context.PROVIDER_URL, "ldap://YOUR-OWN-IP:PORT/");
+	    env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CONTEXT); // 프로토콜 컨텍스트
+	    env.put(Context.PROVIDER_URL, LDAP_URL);
 	    env.put(Context.SECURITY_PRINCIPAL, staff.getId());
 	    env.put(Context.SECURITY_CREDENTIALS, staff.getPw());
-	    env.put(Context.SECURITY_AUTHENTICATION, "simple");
+	    env.put(Context.SECURITY_AUTHENTICATION, LDAP_AUTH);
 	 
 	    return env;
 	}
