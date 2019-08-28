@@ -124,9 +124,7 @@ public class JiraService {
 	 */
 	public IssueVO createJiraIssue(StaffVO staff, IssueVO issue) throws Exception{
 		
-		IssueVO result = null;
-		
-		logger.debug(issue.toString());		
+		IssueVO result = null;	
 		
 		JiraRestClient restClient = null;
 		try {
@@ -150,6 +148,62 @@ public class JiraService {
 		}
 		
 		return result;		
+	}
+	
+	/**
+	 * <pre>
+	 * 이슈 수정
+	 * </pre>
+	 * @methodName	: updateJiraIssue
+	 */
+	public IssueVO updateJiraIssue(StaffVO staff, IssueVO issue) throws Exception {
+		
+		IssueVO result = null;
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			IssueInputBuilder builder = new IssueInputBuilder(JIRA_PROJECT_CD, 10102L, issue.getSummary());
+			builder.setDescription(issue.getDescription());
+			builder.setAssigneeName(issue.getAssigneId());
+			builder.setDueDate(new DateTime(issue.getDueDate()));
+			
+			IssueInput input = builder.build();
+			issueClient.updateIssue(issue.getKey(), input).claim();
+			
+			result = issue;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
+		
+		return result;		
+	}
+	
+	/**
+	 * <pre>
+	 * 이슈 삭제
+	 * </pre>
+	 * @methodName	: deleteJiraIssue
+	 */
+	public void deleteJiraIssue(StaffVO staff, String key) throws Exception {
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			issueClient.deleteIssue(key, true).claim();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	/**
