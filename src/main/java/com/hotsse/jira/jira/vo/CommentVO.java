@@ -2,6 +2,8 @@ package com.hotsse.jira.jira.vo;
 
 import org.joda.time.DateTime;
 
+import com.atlassian.jira.rest.client.api.domain.Comment;
+
 public class CommentVO {
 	
 	private long id;
@@ -52,6 +54,20 @@ public class CommentVO {
 	public String toString() {
 		return "CommentVO [id=" + id + ", parentKey=" + parentKey + ", body=" + body + ", authorId=" + authorId
 				+ ", authorNm=" + authorNm + ", createdDate=" + createdDate + "]";
+	}
+	
+	public static CommentVO parse(Comment comment, String parentKey) {
+		
+		CommentVO result = new CommentVO();
+		
+		result.setId(comment.getId());
+		result.setParentKey(parentKey);
+		result.setBody(comment.getBody());
+		result.setAuthorId(comment.getAuthor().getName());
+		result.setAuthorNm(comment.getAuthor().getDisplayName());
+		result.setCreatedDate(comment.getCreationDate());
+		
+		return result;
 	}
 
 }

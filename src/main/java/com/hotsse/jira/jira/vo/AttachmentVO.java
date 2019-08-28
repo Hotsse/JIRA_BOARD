@@ -1,5 +1,7 @@
 package com.hotsse.jira.jira.vo;
 
+import com.atlassian.jira.rest.client.api.domain.Attachment;
+
 public class AttachmentVO {
 	
 	private String parentKey;
@@ -50,6 +52,20 @@ public class AttachmentVO {
 	public String toString() {
 		return "AttachmentVO [parentKey=" + parentKey + ", uri=" + uri + ", name=" + name + ", size=" + size
 				+ ", mimeType=" + mimeType + ", thumbNail=" + thumbNail + "]";
-	}	
+	}
+	
+	public static AttachmentVO parse(Attachment attachment, String parentKey) {
+		
+		AttachmentVO result = new AttachmentVO();
+		
+		result.setParentKey(parentKey);
+		result.setUri(attachment.getContentUri().toString());
+		result.setName(attachment.getFilename());
+		result.setSize(attachment.getSize());
+		result.setMimeType(attachment.getMimeType());
+		if(attachment.hasThumbnail()) result.setThumbNail(attachment.getThumbnailUri().toString());
+		
+		return result;
+	}
 	
 }

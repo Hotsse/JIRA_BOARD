@@ -28,7 +28,6 @@ import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
-import com.hotsse.jira.common.staff.StaffService;
 import com.hotsse.jira.common.staff.vo.StaffVO;
 import com.hotsse.jira.jira.vo.AttachmentVO;
 import com.hotsse.jira.jira.vo.CommentVO;
@@ -75,18 +74,8 @@ public class JiraService {
 			List<Issue> issues = Lists.newArrayList(searchResult.getIssues());
 			for(Issue issue : issues) {
 				
-				IssueVO iv = new IssueVO();
+				issueList.add(IssueVO.parse(issue));
 				
-				iv.setKey(issue.getKey());																								// key
-				iv.setSummary(issue.getSummary());																				// summary
-				iv.setReporterNm(issue.getReporter().getDisplayName());													// reporterNm
-				iv.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");		// assigneeNm
-				iv.setReporterId(issue.getReporter().getName());																// reporterId
-				iv.setAssigneId(issue.getAssignee().getName());																// assigneeId
-				iv.setCreatedDate(issue.getCreationDate().toDate());															// createdDate
-				iv.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
-								
-				issueList.add(iv);
 			}			
 		}
 		catch(Exception e) {
@@ -115,15 +104,7 @@ public class JiraService {
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
-			result.setKey(issue.getKey());
-			result.setSummary(issue.getSummary());
-			result.setDescription(issue.getDescription());
-			result.setReporterNm(issue.getReporter().getDisplayName());
-			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");
-			result.setReporterId(issue.getReporter().getName());
-			result.setAssigneId(issue.getAssignee().getName());
-			result.setCreatedDate(issue.getCreationDate().toDate());
-			result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);
+			result = IssueVO.parse(issue);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -190,18 +171,9 @@ public class JiraService {
 			Iterable<Comment> comments = issue.getComments();
 			if(comments != null) {
 				
-				for(Comment c : comments) {
+				for(Comment comment : comments) {
 					
-					CommentVO comment = new CommentVO();
-					
-					comment.setId(c.getId());
-					comment.setParentKey(key);
-					comment.setBody(c.getBody());
-					comment.setAuthorId(c.getAuthor().getName());
-					comment.setAuthorNm(c.getAuthor().getDisplayName());
-					comment.setCreatedDate(c.getCreationDate());
-					
-					commentList.add(comment);					
+					commentList.add(CommentVO.parse(comment, key));					
 				}
 				Collections.reverse(commentList); // 댓글 역순 정렬
 			}
@@ -236,18 +208,9 @@ public class JiraService {
 			Iterable<Attachment> attachments = issue.getAttachments();
 			if(attachments != null) {
 				
-				for(Attachment a : attachments) {
+				for(Attachment attachment : attachments) {
 					
-					AttachmentVO attachment = new AttachmentVO();
-					
-					attachment.setParentKey(key);
-					attachment.setUri(a.getContentUri().toString());
-					attachment.setName(a.getFilename());
-					attachment.setSize(a.getSize());
-					attachment.setMimeType(a.getMimeType());
-					if(a.hasThumbnail()) attachment.setThumbNail(a.getThumbnailUri().toString());
-					
-					attachmentList.add(attachment);
+					attachmentList.add(AttachmentVO.parse(attachment, key));
 				}
 				
 			}
@@ -282,17 +245,9 @@ public class JiraService {
 			Iterable<Worklog> worklogs = issue.getWorklogs();
 			if(worklogs != null) {
 				
-				for(Worklog w : worklogs) {
+				for(Worklog worklog : worklogs) {
 					
-					WorklogVO worklog = new WorklogVO();
-					
-					worklog.setParentKey(key);
-					worklog.setAuthorId(w.getAuthor().getName());
-					worklog.setAuthorNm(w.getAuthor().getDisplayName());
-					worklog.setStartDt(w.getCreationDate());
-					worklog.setSpentTime(w.getMinutesSpent());
-					
-					worklogList.add(worklog);					
+					worklogList.add(WorklogVO.parse(worklog, key));					
 				}
 			}
 			

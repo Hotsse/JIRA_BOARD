@@ -2,6 +2,8 @@ package com.hotsse.jira.jira.vo;
 
 import org.joda.time.DateTime;
 
+import com.atlassian.jira.rest.client.api.domain.Worklog;
+
 public class WorklogVO {
 	
 	private long id;	
@@ -52,6 +54,19 @@ public class WorklogVO {
 	public String toString() {
 		return "WorklogVO [id=" + id + ", parentKey=" + parentKey + ", authorId=" + authorId + ", authorNm=" + authorNm
 				+ ", startDt=" + startDt + ", spentTime=" + spentTime + "]";
+	}
+	
+	public static WorklogVO parse(Worklog worklog, String parentKey) {
+		
+		WorklogVO result = new WorklogVO();
+		
+		result.setParentKey(parentKey);
+		result.setAuthorId(worklog.getAuthor().getName());
+		result.setAuthorNm(worklog.getAuthor().getDisplayName());
+		result.setStartDt(worklog.getCreationDate());
+		result.setSpentTime(worklog.getMinutesSpent());
+		
+		return result;		
 	}
 	
 }

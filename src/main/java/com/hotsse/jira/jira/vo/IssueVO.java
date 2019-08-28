@@ -2,6 +2,8 @@ package com.hotsse.jira.jira.vo;
 
 import java.util.Date;
 
+import com.atlassian.jira.rest.client.api.domain.Issue;
+
 public class IssueVO {
 	
 	private String key;
@@ -74,6 +76,23 @@ public class IssueVO {
 		return "IssueVO [key=" + key + ", summary=" + summary + ", reporterNm=" + reporterNm + ", assigneeNm="
 				+ assigneeNm + ", reporterId=" + reporterId + ", assigneId=" + assigneId + ", createdDate="
 				+ createdDate + ", dueDate=" + dueDate + "]";
+	}
+	
+	public static IssueVO parse(Issue issue) {
+		
+		IssueVO result = new IssueVO();
+		
+		result.setKey(issue.getKey());
+		result.setSummary(issue.getSummary());
+		result.setDescription(issue.getDescription());
+		result.setReporterNm(issue.getReporter().getDisplayName());
+		result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");
+		result.setReporterId(issue.getReporter().getName());
+		result.setAssigneId(issue.getAssignee().getName());
+		result.setCreatedDate(issue.getCreationDate().toDate());
+		result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);
+		
+		return result;		
 	}
 
 }
