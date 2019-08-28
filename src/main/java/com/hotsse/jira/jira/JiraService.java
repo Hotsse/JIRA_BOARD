@@ -7,18 +7,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.SearchRestClient;
 import com.atlassian.jira.rest.client.api.domain.Attachment;
+import com.atlassian.jira.rest.client.api.domain.BasicIssue;
 import com.atlassian.jira.rest.client.api.domain.Comment;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.api.domain.Subtask;
 import com.atlassian.jira.rest.client.api.domain.Worklog;
+import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
+import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
@@ -29,13 +35,18 @@ import com.hotsse.jira.jira.vo.CommentVO;
 import com.hotsse.jira.jira.vo.IssueVO;
 import com.hotsse.jira.jira.vo.WorklogVO;
 
+import ch.qos.logback.classic.Logger;
+
 @Service
 public class JiraService {
-
-	final private static String JIRAURI = "http://works.eduwill.net"; // JIRA URI
 	
-	@Autowired
-	private StaffService staffService;
+	protected final Logger logger = (Logger) LoggerFactory.getLogger(getClass());
+
+	@Value("${edw.domain.jira}")
+	private String JIRAURI;
+	
+	@Value("${edw.jira.project}")
+	private String JIRA_PROJECT_CD;
 	
 	@Autowired
 	private CommonService commonService;
@@ -104,14 +115,15 @@ public class JiraService {
 			IssueRestClient issueClient = getIssueClient(restClient);			
 			Issue issue = issueClient.getIssue(key).claim();
 			
-			result.setKey(issue.getKey());																							// key
-			result.setSummary(issue.getSummary());																				// summary
-			result.setReporterNm(issue.getReporter().getDisplayName());													// reporterNm
-			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");	// assigneeNm
-			result.setReporterId(issue.getReporter().getName());																// reporterId
-			result.setAssigneId(issue.getAssignee().getName());																// assigneeId
-			result.setCreatedDate(issue.getCreationDate().toDate());														// createdDate
-			result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);					// dueDate
+			result.setKey(issue.getKey());
+			result.setSummary(issue.getSummary());
+			result.setDescription(issue.getDescription());
+			result.setReporterNm(issue.getReporter().getDisplayName());
+			result.setAssigneeNm((issue.getAssignee() != null) ? issue.getAssignee().getDisplayName() : "");
+			result.setReporterId(issue.getReporter().getName());
+			result.setAssigneId(issue.getAssignee().getName());
+			result.setCreatedDate(issue.getCreationDate().toDate());
+			result.setDueDate((issue.getDueDate() != null) ? issue.getDueDate().toDate() : null);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -121,6 +133,42 @@ public class JiraService {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * <pre>
+	 * 이슈 생성
+	 * </pre>
+	 * @methodName	: createJiraIssue
+	 */
+	public IssueVO createJiraIssue(StaffVO staff, IssueVO issue) throws Exception{
+		
+		IssueVO result = null;
+		
+		logger.debug(issue.toString());		
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			
+			IssueInputBuilder builder = new IssueInputBuilder(JIRA_PROJECT_CD, 10102L, issue.getSummary());
+			builder.setDescription(issue.getDescription());
+			builder.setAssigneeName(issue.getAssigneId());
+			builder.setDueDate(new DateTime(issue.getDueDate()));
+			
+			IssueInput input = builder.build();
+			
+			BasicIssue basicIssue = restClient.getIssueClient().createIssue(input).claim();
+			// Issue result = restClient.getIssueClient().getIssue(basicIssue.getKey()).claim();
+			
+			result = getJiraIssue(staff, basicIssue.getKey());
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;		
 	}
 	
 	/**

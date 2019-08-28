@@ -16,9 +16,6 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.stereotype.Service;
 
 import com.hotsse.jira.common.staff.vo.StaffVO;
@@ -147,22 +144,6 @@ public class CommonService {
 			// Response 결과 분기
 			if((statusCode / 100) == 2) {
 				map.put("result", "OK");
-
-				// totalCount 예외처리
-				/*
-				if(uri.equals(JIRAURI + "/rest/api/2/search") && statusCode == 200) {
-					String strEntity = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
-					try {
-						JSONParser jsonParser = new JSONParser();
-						JSONObject jsonObj = (JSONObject) jsonParser.parse(strEntity);
-						String total = jsonObj.get("total").toString();
-						map.put("totalCount", total);
-					}
-					catch(Exception e) {
-						e.printStackTrace();
-					}
-				}
-				*/
 			}
 			else {
 				map.put("result", "ERROR");

@@ -6,6 +6,7 @@ public class IssueVO {
 	
 	private String key;
 	private String summary;
+	private String description;
 	private String reporterId;
 	private String reporterNm;
 	private String assigneId;
@@ -24,6 +25,12 @@ public class IssueVO {
 	}
 	public void setSummary(String summary) {
 		this.summary = summary;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	public String getReporterNm() {
 		return reporterNm;
