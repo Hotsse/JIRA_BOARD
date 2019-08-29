@@ -3,11 +3,14 @@ package com.hotsse.jira.jira;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +31,7 @@ import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
+import com.hotsse.jira.common.json.vo.JsonVO;
 import com.hotsse.jira.common.staff.vo.StaffVO;
 import com.hotsse.jira.jira.vo.AttachmentVO;
 import com.hotsse.jira.jira.vo.CommentVO;
@@ -56,7 +60,7 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraIssueList
 	 */
-	public List<IssueVO> getJiraIssueList(StaffVO staff) throws Exception{
+	public List<IssueVO> getJiraIssueList(StaffVO staff) throws Exception {
 		
 		List<IssueVO> issueList = new ArrayList<IssueVO>();
 		
@@ -94,7 +98,7 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraIssue
 	 */
-	public IssueVO getJiraIssue(StaffVO staff, String key) throws Exception{
+	public IssueVO getJiraIssue(StaffVO staff, String key) throws Exception {
 		
 		IssueVO result = new IssueVO();
 		
@@ -122,7 +126,7 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: createJiraIssue
 	 */
-	public IssueVO createJiraIssue(StaffVO staff, IssueVO issue) throws Exception{
+	public IssueVO createJiraIssue(StaffVO staff, IssueVO issue) throws Exception {
 		
 		IssueVO result = null;	
 		
@@ -212,7 +216,7 @@ public class JiraService {
 	 * </pre>
 	 * @methodName	: getJiraCommentList
 	 */
-	public List<CommentVO> getJiraCommentList(StaffVO staff, String key){
+	public List<CommentVO> getJiraCommentList(StaffVO staff, String key) throws Exception {
 		
 		List<CommentVO> commentList = new ArrayList<CommentVO>();
 		
@@ -241,6 +245,50 @@ public class JiraService {
 		}
 		
 		return commentList;	
+	}
+	
+	public boolean createComment(StaffVO staff, String key, String body) throws Exception {
+		
+		boolean result = false;
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+			issueClient.addComment(issue.getCommentsUri(), Comment.valueOf(body)).claim();
+						
+			result = true;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
+		
+		return result;
+	}
+	
+	public boolean updateComment(StaffVO staff, CommentVO comment) throws Exception {
+		
+		JsonVO json = new JsonVO();
+		json.body.put("body", comment.getBody());
+		
+		String uri = JIRAURI + "/rest/api/2/issue/" + comment.getParentKey() + "/comment/" + comment.getId(); 
+		Map<String, String> result = commonService.executeHttpPut(uri, staff, json.toJSONString());
+		
+		return "OK".equals(result.get("result")) ? true : false;
+	}
+	
+	public boolean deleteComment(StaffVO staff, CommentVO comment) throws Exception {
+		
+		String uri = JIRAURI + "/rest/api/2/issue/" + comment.getParentKey() + "/comment/" + comment.getId();
+		Map<String, String> result = commonService.executeHttpDelete(uri, staff);
+		
+		return "OK".equals(result.get("result")) ? true : false;		
 	}
 	
 	/**
