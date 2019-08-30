@@ -1,5 +1,6 @@
 package com.hotsse.jira.jira;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.atlassian.jira.rest.client.api.IssueRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
@@ -247,6 +249,12 @@ public class JiraService {
 		return commentList;	
 	}
 	
+	/**
+	 * <pre>
+	 * 댓글 등록
+	 * </pre>
+	 * @methodName	: createComment
+	 */
 	public boolean createComment(StaffVO staff, String key, String body) throws Exception {
 		
 		boolean result = false;
@@ -272,6 +280,12 @@ public class JiraService {
 		return result;
 	}
 	
+	/**
+	 * <pre>
+	 * 댓글 수정
+	 * </pre>
+	 * @methodName	: updateComment
+	 */
 	public boolean updateComment(StaffVO staff, CommentVO comment) throws Exception {
 		
 		JsonVO json = new JsonVO();
@@ -283,12 +297,18 @@ public class JiraService {
 		return "OK".equals(result.get("result")) ? true : false;
 	}
 	
+	/**
+	 * <pre>
+	 * 댓글 삭제
+	 * </pre>
+	 * @methodName	: deleteComment
+	 */
 	public boolean deleteComment(StaffVO staff, CommentVO comment) throws Exception {
 		
 		String uri = JIRAURI + "/rest/api/2/issue/" + comment.getParentKey() + "/comment/" + comment.getId();
 		Map<String, String> result = commonService.executeHttpDelete(uri, staff);
 		
-		return "OK".equals(result.get("result")) ? true : false;		
+		return "OK".equals(result.get("result")) ? true : false;
 	}
 	
 	/**
@@ -326,6 +346,54 @@ public class JiraService {
 		}
 		
 		return attachmentList;		
+	}
+	
+	/**
+	 * <pre>
+	 * 첨부파일 등록
+	 * </pre>
+	 * @methodName	: createAttachment
+	 */
+	public boolean createAttachment(StaffVO staff, String key, MultipartFile attachment) throws Exception {
+		
+		boolean result = false;
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			Issue issue = issueClient.getIssue(key).claim();
+			
+			if(attachment == null || attachment.getSize() <= 0) {
+				throw new Exception();
+			}
+			
+			String orgFileNm = attachment.getOriginalFilename();				
+			issueClient.addAttachment(issue.getAttachmentsUri(), new ByteArrayInputStream(attachment.getBytes()), orgFileNm).claim();
+			
+			result = true;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * <pre>
+	 * 첨부파일 삭제
+	 * </pre>
+	 * @methodName	: deleteAttachment
+	 */
+	public boolean deleteAttachment(StaffVO staff, long attachmentId) throws Exception {
+		
+		// (DELETE)${domain}/rest/api/2/attachment/${attachmentId}
+		String uri = JIRAURI + "/rest/api/2/attachment/" + attachmentId;
+		Map<String, String> result = commonService.executeHttpDelete(uri, staff);
+		
+		return "OK".equals(result.get("result")) ? true : false;		
 	}
 	
 	/**

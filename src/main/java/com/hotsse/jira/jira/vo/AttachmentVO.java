@@ -4,6 +4,7 @@ import com.atlassian.jira.rest.client.api.domain.Attachment;
 
 public class AttachmentVO {
 	
+	private long id;
 	private String parentKey;
 	private String uri;
 	private String name;
@@ -11,6 +12,12 @@ public class AttachmentVO {
 	private String mimeType;
 	private String thumbNail;
 	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
 	public String getParentKey() {
 		return parentKey;
 	}
@@ -57,6 +64,15 @@ public class AttachmentVO {
 	public static AttachmentVO parse(Attachment attachment, String parentKey) {
 		
 		AttachmentVO result = new AttachmentVO();
+		
+		try {
+			String []tmparr = attachment.getSelf().toString().split("/");
+			String attachmentId = tmparr[tmparr.length-1];		
+			result.setId(Long.parseLong(attachmentId));
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 		result.setParentKey(parentKey);
 		result.setUri(attachment.getContentUri().toString());
