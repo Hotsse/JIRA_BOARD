@@ -4,14 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
-import org.json.simple.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +28,7 @@ import com.atlassian.jira.rest.client.api.domain.Subtask;
 import com.atlassian.jira.rest.client.api.domain.Worklog;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
+import com.atlassian.jira.rest.client.api.domain.input.WorklogInput;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.google.common.collect.Lists;
 import com.hotsse.jira.common.CommonService;
@@ -377,6 +376,9 @@ public class JiraService {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
 		
 		return result;
 	}
@@ -430,6 +432,73 @@ public class JiraService {
 		}
 		
 		return worklogList;		
+	}
+	
+	/**
+	 * <pre>
+	 * 작업시간 등록
+	 * </pre>
+	 * @methodName	: createWorklog
+	 */
+	public boolean createWorklog(StaffVO staff, WorklogVO worklog) {
+		
+		boolean result = false;
+		
+		JiraRestClient restClient = null;
+		try {
+			restClient = getJiraRestClient(staff.getId(), staff.getPw());
+			IssueRestClient issueClient = getIssueClient(restClient);
+			
+			Issue issue = issueClient.getIssue(worklog.getParentKey()).claim();
+			
+			WorklogInput worklogInput = new WorklogInput(null, issue.getSelf(), null, null, "", worklog.getStartDt(), worklog.getSpentTime(), null);
+			issueClient.addWorklog(issue.getWorklogUri(), worklogInput).claim();
+			
+			result = true;
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			commonService.closeInstant(restClient);
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * <pre>
+	 * 작업시간 수정
+	 * </pre>
+	 * @methodName	: updateWorklog
+	 */
+	public boolean updateWorklog(StaffVO staff, WorklogVO worklog) throws Exception {
+		
+		JsonVO json = new JsonVO();
+		json.body.put("started", worklog.getStartDt().toString("yyyy-MM-dd") + "T" + worklog.getStartDt().toString("HH:mm") + ":00.000+0900");
+		json.body.put("timeSpent", (worklog.getSpentTime()/60) + "h " + (worklog.getSpentTime() % 60) + "m");
+		
+		// (PUT)http://works.eduwill.net/rest/api/2/issue/{issueKey}/worklog/${worklogId}
+		String uri = JIRAURI + "/rest/api/2/issue/" + worklog.getParentKey() + "/worklog/" + worklog.getId();
+		logger.debug(uri);
+		Map<String, String> result = commonService.executeHttpPut(uri, staff, json.toJSONString());
+		
+		return "OK".equals(result.get("result")) ? true : false;
+	}
+	
+	/**
+	 * <pre>
+	 * 작업시간 삭제
+	 * </pre>
+	 * @methodName	: deleteWorklog
+	 */
+	public boolean deleteWorklog(StaffVO staff, WorklogVO worklog) throws Exception {
+		
+		// (DELETE)http://works.eduwill.net/rest/api/2/issue/{issueKey}/worklog/${worklogId}
+		String uri = JIRAURI + "/rest/api/2/issue/" + worklog.getParentKey() + "/worklog/" + worklog.getId();
+		Map<String, String> result = commonService.executeHttpDelete(uri, staff);
+		
+		return "OK".equals(result.get("result")) ? true : false;		
 	}
 	
 	/**

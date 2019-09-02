@@ -60,6 +60,15 @@ public class WorklogVO {
 		
 		WorklogVO result = new WorklogVO();
 		
+		try {
+			String []tmparr = worklog.getSelf().toString().split("/");
+			String worklogId = tmparr[tmparr.length-1];		
+			result.setId(Long.parseLong(worklogId));
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		result.setParentKey(parentKey);
 		result.setAuthorId(worklog.getAuthor().getName());
 		result.setAuthorNm(worklog.getAuthor().getDisplayName());
