@@ -143,7 +143,7 @@ public class JiraService {
 			IssueInput input = builder.build();
 			
 			BasicIssue basicIssue = restClient.getIssueClient().createIssue(input).claim();
-			// Issue result = restClient.getIssueClient().getIssue(basicIssue.getKey()).claim();
+			// Issue result = restClient.getIssueClient().getIssue(basicIssue.getKey()).claim(); //
 			
 			result = getJiraIssue(staff, basicIssue.getKey());
 			
